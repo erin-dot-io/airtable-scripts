@@ -44,39 +44,3 @@ for (let merchantRecord of merchants.records) {
         }
     }
 }
-
-
-// Convert Amount to negative value if coming from Square Cash
-let importAmount = config.amount;
-let importTagNames = config.tag_names;
-let invertedSuccessTag = 'Amount Inverted';
-
-if (!importTagNames.includes(invertedSuccessTag) && importTagNames.includes('Zap (Square)')) {
-    let update = await transactions.updateRecordAsync(thisTransaction, {
-        '**USD': -importAmount,
-        'Tags': [ ...thisTransaction.getCellValue('Tags'), { name: invertedSuccessTag }]
-    });
-}
-
-
-// Match Account (not needed if account name coming from Zapier is an exact match to the linked record's name)
-// let importAccountRaw = config.account_raw.toLowerCase();
-// let accounts = base.getTable('Accounts');
-// let accountsFiltered = await accounts.getView('Has Keywords').selectRecordsAsync();
-
-// for (let accountRecord of accountsFiltered.records) {
-//     let keywords = accountRecord.getCellValue('Keywords').toLowerCase();
-
-//     if (importAccountRaw.includes(keywords)) {
-//         let update = await transactions.updateRecordAsync(thisTransaction, {
-//             'Account': [{ id: accountRecord.id }],
-//             'Tags': [ ...thisTransaction.getCellValue('Tags'), { name: 'Account Matched' }]
-//         });
-//     }
-// }
-
-
-// Filter and array?
-// let filteredRecords = merchantsFiltered.records.filter(match => {
-//     return match.getCellValue('Keywords')
-// })
