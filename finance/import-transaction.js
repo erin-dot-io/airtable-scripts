@@ -1,8 +1,6 @@
 // INPUT VARIABLES
 // merchant_raw = Field values / *Name
 // id = Airtable record ID
-// tag_names = Field values / tags
-// amount = Field values = Field values / **USD
 
 let config = input.config();
 let importId = config.id;

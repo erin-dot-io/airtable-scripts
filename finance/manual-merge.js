@@ -2,15 +2,11 @@
 // id = Airtable record ID
 // merchant_name = Field values / Merchant / Name
 // amount = Field values / **USD
-// import_name = Field values / *Name
-// import_tags = Field values / Tags / Name
 
 let config = input.config();
 let importId = config.id;
 let importMerchant = config.merchant_name;
 let importAmount = config.amount;
-let importName = config.import_name;
-let importTags = config.import_tags;
 
 let transactions = base.getTable('Transactions');
 let transactionsFiltered = await transactions.getView('Manual Add Check').selectRecordsAsync({
