@@ -9,7 +9,6 @@ let transactions = base.getTable('Transactions');
 let transactionsFiltered = await transactions.getView('Uncategorized').selectRecordsAsync();
 let thisTransaction = transactionsFiltered.getRecord(importId);
 
-
 // Match Merchant
 let importMerchantRaw = config.merchant_raw.toLowerCase();
 let merchants = await base.getTable('Merchants').selectRecordsAsync();
