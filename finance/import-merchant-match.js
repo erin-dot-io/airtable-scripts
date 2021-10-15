@@ -20,57 +20,60 @@ let merchants = await base.getTable('Merchants').selectRecordsAsync({
     fields: ['Name', 'Keywords']
 });
 
+// Set a global variable to track whether the record has had a merchant assigned to it.
+var merchantMatch = '';
+
 // Iterate over each merchant to find and apply a match if one exists.
 for (let merchantRecord of merchants.records) {
     let merchantName = merchantRecord.getCellValue('Name').toLowerCase();
+    let keywords = merchantRecord.getCellValue('Keywords');
 
     // First check for a direct match
     if (importMerchantRaw.includes(merchantName)) {
-        console.log(`Merchant direct match!`);
+        var merchantMatch = merchantRecord.id;
+
+        console.log(`Merchant direct match: ${merchantMatch}`);
+    // Otherwise, check the Keywords field for a match
+    } else if (keywords) {
+        let keywordsArray = keywords.toLowerCase().split(', ');
+
+        for (let keyword of keywordsArray) {
+            // Check if there is a keyword match
+            if (importMerchantRaw.includes(keyword)) {
+                var merchantMatch = merchantRecord.id;
+
+                console.log(`Merchant keyword match: ${merchantMatch}`);
+            }
+        }
+    }
+}
+
+// Check if a merchant had been assigned
+// If not, tag transaction as so
+if (merchantMatch != '') {
+    console.log(`Merchant assigned? YES: ${merchantMatch}`)
+
+    if (thisTransaction.getCellValue('Tags')) {
         let update = await transactions.updateRecordAsync(thisTransaction, {
-            'Merchant': [{ id: merchantRecord.id }],
-            // TODO: Throws error if there are no other tags...
-            // 'Tags': [ ...thisTransaction.getCellValue('Tags'), { name: 'Merchant Matched' }]
+            'Merchant': [{ id: merchantMatch }],
+            'Tags': [ ...thisTransaction.getCellValue('Tags'), { name: 'Merchant Matched' }]
+        });
+    } else {
+        let update = await transactions.updateRecordAsync(thisTransaction, {
+            'Merchant': [{ id: merchantMatch }],
             'Tags': [{ name: 'Merchant Matched' }]
         });
-    // Otherwise, check the Keywords field for a match
+    }
+} else {
+    console.log(`Merchant assigned? NO: ${merchantMatch}`)
+
+    if (thisTransaction.getCellValue('Tags')) {
+        let update = await transactions.updateRecordAsync(thisTransaction, {
+            'Tags': [ ...thisTransaction.getCellValue('Tags'), { name: 'No Merchant Match' }]
+        });
     } else {
-        let keywords = merchantRecord.getCellValue('Keywords');
-
-        if (keywords) {
-            let keywordsArray = keywords.toLowerCase().split(', ');
-
-            for (let keyword of keywordsArray) {
-                // Check if there is a keyword match
-                if (importMerchantRaw.includes(keyword)) {
-                    console.log(`Merchant keyword match!`);
-
-                    if (thisTransaction.getCellValue('Tags')) {
-                        let update = await transactions.updateRecordAsync(thisTransaction, {
-                            'Merchant': [{ id: merchantRecord.id }],
-                            'Tags': [ ...thisTransaction.getCellValue('Tags'), { name: 'Merchant Matched' }]
-                        });
-                    } else {
-                        let update = await transactions.updateRecordAsync(thisTransaction, {
-                            'Merchant': [{ id: merchantRecord.id }],
-                            'Tags': [{ name: 'Merchant Matched' }]
-                        });
-                    }
-                // If there's no match (direct or keyword), tag the transaction as so
-                }
-                else {
-                    if (thisTransaction.getCellValue('Tags')) {
-                        let update = await transactions.updateRecordAsync(thisTransaction, {
-                            'Tags': [ ...thisTransaction.getCellValue('Tags'), { name: 'No Merchant Match' }]
-                        });
-                    } else {
-                        let update = await transactions.updateRecordAsync(thisTransaction, {
-                            'Tags': [{ name: 'No Merchant Match' }]
-                        });
-                    }
-                }
-            }
-
-        }
+        let update = await transactions.updateRecordAsync(thisTransaction, {
+            'Tags': [{ name: 'No Merchant Match' }]
+        });
     }
 }
