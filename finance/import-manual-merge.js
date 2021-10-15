@@ -1,16 +1,11 @@
-// INPUT VARIABLES
-// id = Airtable record ID
-// merchant_name = Field values / Merchant / Name
-// amount = Field values / **USD
-
 let config = input.config();
 let importId = config.id;
 let importMerchant = config.merchant_name;
 let importAmount = config.amount;
 
 let transactions = base.getTable('Transactions');
-let transactionsFiltered = await transactions.getView('Manual Add Check').selectRecordsAsync({
-    fields: ['Merchant', 'Transaction Date', '**USD', 'Attachments', 'Personal Note', 'Tags']
+let transactionsFiltered = await transactions.getView('Check: Manual Merge').selectRecordsAsync({
+    fields: ['Merchant', 'Transaction Date', '**USD', 'Attachments', 'Personal Note', 'Tags', '💰✏️Expense']
 });
 
 // Check to make sure the record is still visibile in the 'Manual Add Check' view.
@@ -22,7 +17,7 @@ if (transactionsFiltered.records.length > 0) {
     let thisTransaction = transactionsFiltered.getRecord(importId);
 
     let manualAdds = await base.getTable('Transactions').getView('Manual Add').selectRecordsAsync({
-        fields: ['Merchant', 'Date Created', '**USD', 'Attachments', 'Personal Note']
+        fields: ['Merchant', 'Date Created', '**USD', 'Attachments', 'Personal Note', '💰✏️Expense']
     });
 
     for (let manualAdd of manualAdds.records) {
@@ -31,6 +26,7 @@ if (transactionsFiltered.records.length > 0) {
         let manualAddDate = manualAdd.getCellValue('Date Created');
         let manualAddNote = manualAdd.getCellValue('Personal Note');
         let manualAddAttachments = manualAdd.getCellValue('Attachments');
+        let manualAddExpense = manualAdd.getCellValue('💰✏️Expense');
 
         if (importMerchant.includes(manualAddMerchant[0].name) && (importAmount == manualAddAmount)) {
             console.log('Match!');
@@ -40,6 +36,7 @@ if (transactionsFiltered.records.length > 0) {
                     'Transaction Date': manualAddDate,
                     'Personal Note': manualAddNote,
                     'Attachments': manualAddAttachments,
+                    '💰✏️Expense': manualAddExpense,
                     'Tags': [ ...thisTransaction.getCellValue('Tags'), { name: 'Manual Merged' }]
                 });
             } else {
@@ -47,6 +44,7 @@ if (transactionsFiltered.records.length > 0) {
                     'Transaction Date': manualAddDate,
                     'Personal Note': manualAddNote,
                     'Attachments': manualAddAttachments,
+                    '💰✏️Expense': manualAddExpense,
                     'Tags': [{ name: 'Manual Merged' }]
                 });
             }
